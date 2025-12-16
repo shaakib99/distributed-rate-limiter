@@ -2,13 +2,13 @@ from redis.asyncio import Redis
 
 class RedisService:
     def __init__(self, host: str = 'localhost', port: int = 6379, db: int = 0):
-        self.client = Redis(host=host, port=port, db=db)
+        self.client: Redis = Redis(host=host, port=port, db=db)
 
     async def connect(self):
-        self.client.ping()
+        return await self.client.ping()
     
     async def disconnect(self):
-        await self.client.close()
+        return await self.client.close()
     
     async def get(self, key: str) -> str | None:
         result = await self.client.get(key)

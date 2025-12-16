@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from .service.router import router as demo_router
+from service.router import router as demo_router
 from rate_limiter_service.redis_service import RedisService
 
 @asynccontextmanager
