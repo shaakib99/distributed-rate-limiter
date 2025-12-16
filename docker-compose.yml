@@ -1,31 +1,82 @@
-version: '3.8'
+version: '3.9'
+
 services:
-  redis-1:
+  redis-7000:
     image: redis:latest
-    container_name: redis-1
+    container_name: redis-7000
+    command: >
+      sh -c "redis-server  --port 7000
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --cluster-announce-ip localhost
+      --cluster-announce-port 7000
+      --cluster-announce-bus-port 17000
+      --appendonly yes"
     ports:
-      - "6379:6379"
+      - "7000:7000"
+      - "17000:17000"
+    volumes:
+      - ../data/7000:/data
     networks:
-      - rate_limiter_network
-  
-  redis-2:
+      redis-cluster-net:
+        ipv4_address: 172.19.0.2
+
+  redis-7001:
     image: redis:latest
-    container_name: redis-2
+    container_name: redis-7001
+    command: >
+      sh -c "redis-server  --port 7001
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --cluster-announce-ip localhost
+      --cluster-announce-port 7001
+      --cluster-announce-bus-port 17001
+      --appendonly yes"
     ports:
-      - "6380:6379"
+      - "7001:7001"
+      - "17001:17001"
+    volumes:
+      - ../data/7001:/data
     networks:
-      - rate_limiter_network
-  
-  redis-3:
+      redis-cluster-net:
+        ipv4_address: 172.19.0.3
+
+
+  redis-7002:
     image: redis:latest
-    container_name: redis-3
+    container_name: redis-7002
+    command: >
+      sh -c "redis-server  --port 7002
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --cluster-announce-ip localhost
+      --cluster-announce-port 7002
+      --cluster-announce-bus-port 17002
+      --appendonly yes"
     ports:
-      - "6381:6379"
+      - "7002:7002"
+      - "17002:17002"
+    volumes:
+      - ../data/7002:/data
     networks:
-      - rate_limiter_network
-  
+      redis-cluster-net:
+        ipv4_address: 172.19.0.4
+
+  redis-setup:
+    image: redis:latest
+    depends_on:
+      - redis-7000
+      - redis-7001
+      - redis-7002
+    entrypoint: sh -c "sleep 30 && echo 'yes' | redis-cli --cluster create redis-7000:7000 redis-7001:7001 redis-7002:7002 --cluster-replicas 0"
+    networks:
+      - redis-cluster-net
+
 networks:
-  rate_limiter_network:
+  redis-cluster-net:
     driver: bridge
     ipam:
       config:

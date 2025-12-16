@@ -1,8 +1,16 @@
-from redis.asyncio import Redis
+from redis.asyncio import RedisCluster
+from redis.asyncio.cluster import ClusterNode
 
 class RedisService:
-    def __init__(self, host: str = 'localhost', port: int = 6379, db: int = 0):
-        self.client: Redis = Redis(host=host, port=port, db=db)
+    def __init__(self):
+        self.client: RedisCluster = RedisCluster(
+           startup_nodes=[
+                ClusterNode(host="localhost", port=7000),
+                ClusterNode(host="localhost", port=7001),
+                ClusterNode(host="localhost", port=7002),
+            ],
+            decode_responses=True,
+        )
 
     async def connect(self):
         return await self.client.ping()
