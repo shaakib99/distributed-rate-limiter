@@ -26,5 +26,5 @@ class RateLimiter:
             if count < self.calls_per_minute and last_modified > window_start:
                 await self.redis_service.set(key, json.dumps({"count": count + 1, "last_modified": current_time}), ex=60)
                 return False
-            else:
-                return True 
+            
+            return True 
