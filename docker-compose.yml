@@ -9,7 +9,7 @@ services:
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
-      --cluster-announce-ip localhost
+      --cluster-announce-ip 172.19.0.2
       --cluster-announce-port 7000
       --cluster-announce-bus-port 17000
       --appendonly yes"
@@ -30,7 +30,7 @@ services:
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
-      --cluster-announce-ip localhost
+      --cluster-announce-ip 172.19.0.3
       --cluster-announce-port 7001
       --cluster-announce-bus-port 17001
       --appendonly yes"
@@ -52,7 +52,7 @@ services:
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
-      --cluster-announce-ip localhost
+      --cluster-announce-ip 172.19.0.4
       --cluster-announce-port 7002
       --cluster-announce-bus-port 17002
       --appendonly yes"
@@ -71,9 +71,48 @@ services:
       - redis-7000
       - redis-7001
       - redis-7002
-    entrypoint: sh -c "sleep 30 && echo 'yes' | redis-cli --cluster create redis-7000:7000 redis-7001:7001 redis-7002:7002 --cluster-replicas 0"
+    entrypoint: sh -c "sleep 30 && echo 'yes' | redis-cli --cluster create 172.19.0.2:7000 172.19.0.3:7001 172.19.0.4:7002 --cluster-replicas 0"
     networks:
-      - redis-cluster-net
+      redis-cluster-net:
+        ipv4_address: 172.19.0.5
+    
+  app-1:
+    build: .
+    container_name: app-1
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis-7000
+      - redis-7001
+      - redis-7002
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.19.0.6
+  app-2:
+    build: .
+    container_name: app-2
+    ports:
+      - "8001:8000"
+    depends_on:
+      - redis-7000
+      - redis-7001
+      - redis-7002
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.19.0.7
+  load-balancer:
+    image: nginx:latest
+    container_name: load-balancer
+    ports:
+      - "9000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app-1
+      - app-2
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.19.0.8
 
 networks:
   redis-cluster-net:

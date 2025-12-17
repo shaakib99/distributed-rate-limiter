@@ -5,9 +5,9 @@ class RedisService:
     def __init__(self):
         self.client: RedisCluster = RedisCluster(
            startup_nodes=[
-                ClusterNode(host="localhost", port=7000),
-                ClusterNode(host="localhost", port=7001),
-                ClusterNode(host="localhost", port=7002),
+                ClusterNode(host="172.19.0.2", port=7000),
+                ClusterNode(host="172.19.0.3", port=7001),
+                ClusterNode(host="172.19.0.4", port=7002),
             ],
             decode_responses=True,
         )
@@ -34,3 +34,9 @@ class RedisService:
     
     async def has(self, key: str) -> bool:
         return (await self.client.exists(key)) == 1
+    
+    async def incr(self, key: str) -> int:
+        return await self.client.incr(key)
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        return await self.client.expire(key, seconds)
