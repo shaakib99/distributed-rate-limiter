@@ -12,14 +12,11 @@ class RateLimiter:
     async def is_rate_limited(self, client_id: str) -> bool:
         key = f"rate_limit:{client_id}"
 
-        # Atomic increment — this is safe under concurrency
         new_count = await self.redis_service.incr(key)
 
-        # Set TTL only on the very first request (when count goes from 0 → 1)
         if new_count == 1:
             await self.redis_service.expire(key, self.window_seconds)
 
-        # If we've exceeded the limit, block
         if new_count > self.calls_per_minute:
             return True
 
